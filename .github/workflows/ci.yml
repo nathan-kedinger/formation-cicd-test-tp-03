@@ -99,7 +99,7 @@ jobs:
       - name: Base OWASP ZAP Scan
         uses: zaproxy/action-baseline@v0.15.0
         with:
-          target: 'http://host.docker.internal:8080'
+          target: 'http://localhost:8080'
 
       - name: Upload ZAP report
         if: always()
