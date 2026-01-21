@@ -1,0 +1,60 @@
+name: CI pricing
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: maven
+      - name: generate projet
+        run: | 
+          mvn -q clean package
+          nohup java -jar target/formation-cicd-test-tp-03-solution-1.0-SNAPSHOT.jar > ../app.log 2>&1 &
+
+      - name: Wait for API to be ready
+        run: |
+            for i in {1..30}; do
+              if curl -sSf http://localhost:8080/health > /dev/null; then
+                echo "API is up!"
+                exit 0
+              fi
+              echo "Waiting API..."
+              sleep 2
+            done
+            echo "API not ready"
+            tail -n 200 app.log || true
+            exit 1
+
+      - name: Run Unit Tests
+        # Exécute tous les tests SAUF le test d'intégration
+        run: mvn test -Dtest=!PricingIntegrationTest -f order-service/pom.xml
+
+  security-scan:
+    needs: api-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Run Quality Checks
+        run: mvn verify -DskipTests -f order-service/pom.xml
+
