@@ -38,10 +38,28 @@ jobs:
             tail -n 200 app.log || true
             exit 1
 
-      - name: Run Unit Tests
-        # Exécute tous les tests SAUF le test d'intégration
-        run: mvn test -Dtest=!PricingIntegrationTest -f order-service/pom.xml
+      - name: Run API tests (Hurl via Docker)
+        run: |
+          mkdir -p /work/api-test-reports
+          docker run --rm \
+            --add-host=host.docker.internal:host-gateway \
+            -v ${{ github.workspace }}:/work \
+            ghcr.io/orange-opensource/hurl:latest \
+            --test /work/src/test/java/api \
+            --report /work/api-test-reports/summary.txt \
+            --report-junit /work/api-test-reports/junit.xml \
+            --report-html /work/api-test-reports/report.html \
+            --report-json /work/api-test-reports/report.json \ 
 
+      - name: Upload API test reports in artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: api-test-reports
+          path: ''
+            api-test-reports/summary.txt
+            api-test-reports/junit.xml
+            api-test-reports/report.html
+            api-test-reports/report.json
   security-scan:
     needs: api-tests
     runs-on: ubuntu-latest
