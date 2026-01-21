@@ -19,10 +19,10 @@ jobs:
           java-version: '11'
           distribution: 'temurin'
           cache: maven
-      - name: generate projet
+      - name: generate an start API
         run: | 
           mvn -q clean package
-          nohup java -jar target/formation-cicd-test-tp-03-solution-1.0-SNAPSHOT.jar > ../app.log 2>&1 &
+          nohup java -jar target/formation-cicd-test-tp-03-solution-1.0-SNAPSHOT.jar > app.log 2>&1 &
 
       - name: Wait for API to be ready
         run: |
@@ -35,7 +35,11 @@ jobs:
               sleep 2
             done
             echo "API not ready"
-            tail -n 200 app.log || true
+            if [ -f app.log ]; then
+            tail -n 200 app.log
+            else
+            echo "Log file app.log not found."
+            fi
             exit 1
 
       - name: Run API tests (Hurl via Docker)
