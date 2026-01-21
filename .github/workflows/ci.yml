@@ -45,7 +45,7 @@ jobs:
 
       - name: Run API tests (Hurl via Docker)
         run: |
-          mkdir -p /work/api-test-reports
+          mkdir -p api-test-reports
           docker run --rm \
             --add-host=host.docker.internal:host-gateway \
             -v ${{ github.workspace }}:/work \
