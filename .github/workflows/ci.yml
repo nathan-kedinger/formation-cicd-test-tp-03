@@ -52,7 +52,7 @@ jobs:
             --report-json /work/api-test-reports/report.json \ 
 
       - name: Upload API test reports in artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v5
         with:
           name: api-test-reports
           path: api-test-reports/
